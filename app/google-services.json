@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "406342275172",
+    "firebase_url": "https://trainingat-542d2.firebaseio.com",
+    "project_id": "trainingat-542d2",
+    "storage_bucket": "trainingat-542d2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:406342275172:android:3a0aefcc85ec0728",
+        "android_client_info": {
+          "package_name": "com.rafa.trainingat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "406342275172-626r50bcp90ft8tdodd2jvmelrjk663j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAbB7QIMC-vi7XMMTCSbbu6I0p6qLmSqg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

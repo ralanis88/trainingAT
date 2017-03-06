@@ -1,23 +1,39 @@
 package com.rafa.trainingat;
 
+import android.media.Image;
+import android.media.ImageReader;
+import android.net.Uri;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 
 import com.google.android.gms.common.api.BooleanResult;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.things.contrib.driver.button.Button;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
 import com.google.android.things.pio.PeripheralManagerService;
+import com.google.firebase.FirebaseException;
+import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -28,7 +44,13 @@ public class MainActivity extends AppCompatActivity
     private Button mButton;
     private Gpio mLedGpio;
     private Handler mHandler = new Handler();
+    private Handler bckgrndHandler;
+    private HandlerThread bckgrndThread;
     private FirebaseDatabase mDatabase;
+    private FirebaseStorage storage;
+    private TrainingCamera myCamera;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -41,6 +63,11 @@ public class MainActivity extends AppCompatActivity
         //Create the GPIO Service Connections
 //        PeripheralManagerService service = new PeripheralManagerService();
         PeripheralManagerService ledService = new PeripheralManagerService();
+
+        startBackgroundThread();
+
+        myCamera = TrainingCamera.getInstance();
+        myCamera.initializeCamera(this, bckgrndHandler, onImageAvailableListener);
 
 //        try
 //        {
@@ -79,9 +106,18 @@ public class MainActivity extends AppCompatActivity
         }
 
         mDatabase = FirebaseDatabase.getInstance();
+        storage = FirebaseStorage.getInstance();
         initializeMainActivityButton();
         listenToDB();
 
+    }
+
+    //Start background thread
+    private void startBackgroundThread()
+    {
+        bckgrndThread = new HandlerThread("InputThread");
+        bckgrndThread.start();
+        bckgrndHandler = new Handler(bckgrndThread.getLooper());
     }
 
 
@@ -110,9 +146,92 @@ public class MainActivity extends AppCompatActivity
             {
                 Log.i(TAG, "Button pressed");
                 mHandler.post(mBlinkRunnable);
+                myCamera.takePicture();
             }
         }
     };
+
+    // Callback to receive captured camera image data
+    private ImageReader.OnImageAvailableListener onImageAvailableListener = new ImageReader.OnImageAvailableListener()
+    {
+        @Override
+        public void onImageAvailable(ImageReader reader)
+        {
+            //Get Raw image bytes
+            Image img = reader.acquireLatestImage();
+            ByteBuffer imgBuffer = img.getPlanes()[0].getBuffer();
+            final byte [] imgBytes = new byte[imgBuffer.remaining()];
+            imgBuffer.get(imgBytes);
+            img.close();
+
+            onPictureTaken(imgBytes);
+        }
+    };
+
+    private void onPictureTaken(byte[] imgBytes)
+    {
+        if (imgBytes != null)
+        {
+            Log.d(TAG, "Picture taken");
+
+//            try
+//            {
+//                // Write contents to DB
+//                final DatabaseReference log = mDatabase.getReference("camera").push();
+//                log.child("timestamp").setValue(ServerValue.TIMESTAMP);
+//
+//                // Save image data Base64 encoded
+//                String encoded = Base64.encodeToString(imgBytes, Base64.NO_WRAP | Base64.URL_SAFE);
+//                log.child("image").setValue(encoded);
+//            }
+//            catch (Exception e)
+//            {
+//                Log.d(TAG, "Error in uploading picture to firebase");
+//            }
+
+            final Date date = new Date();
+            StorageReference storageRef = storage.getReference();
+            StorageReference imgRef = storageRef.child("images/"+date+".jpg");
+            UploadTask uploadTask = imgRef.putBytes(imgBytes);
+
+
+
+            uploadTask.addOnFailureListener(new OnFailureListener()
+            {
+                @Override
+                public void onFailure(@NonNull Exception e)
+                {
+                    Log.d(TAG, "Couldn't upload image to storage", e);
+
+                }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+            {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
+                {
+                    Uri downloadURL = taskSnapshot.getDownloadUrl();
+                    Log.d(TAG, "Upload successful in following url: " + downloadURL);
+                    //upload to database
+                    try
+                    {
+                        DatabaseReference log = mDatabase.getReference("camera").push();
+                        log.child("timestamp").setValue(date);
+                        log.child("image").setValue(downloadURL.toString());
+
+                    }
+                    catch (Exception e)
+                    {
+                        Log.d(TAG, "Error in saving to DB after upload ", e);
+                    }
+                }
+            });
+
+
+
+
+
+        }
+    }
 
 
     //Register an event callback when button pressed
@@ -253,6 +372,11 @@ public class MainActivity extends AppCompatActivity
             {
                 Log.e(TAG, "Can't destroy Button: ", io);
             }
+        }
+
+        if (myCamera != null)
+        {
+            myCamera.shutdown();
         }
 
     }

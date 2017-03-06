@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "406342275172-j8mlq3dakulfnbt38pg350lp1kndg83b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rafa.trainingat",
+            "certificate_hash": "633a781003dfd88e315ff3163f410724db596bf6"
+          }
+        },
+        {
           "client_id": "406342275172-626r50bcp90ft8tdodd2jvmelrjk663j.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -22,6 +30,9 @@
       "api_key": [
         {
           "current_key": "AIzaSyBAbB7QIMC-vi7XMMTCSbbu6I0p6qLmSqg"
+        },
+        {
+          "current_key": "AIzaSyBF-LOmt2G4dYYlf0KaN7T52IdP4663dBA"
         }
       ],
       "services": {
@@ -29,8 +40,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "406342275172-626r50bcp90ft8tdodd2jvmelrjk663j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

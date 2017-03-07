@@ -32,6 +32,7 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
@@ -189,9 +190,10 @@ public class MainActivity extends AppCompatActivity
 //                Log.d(TAG, "Error in uploading picture to firebase");
 //            }
 
-            final Date date = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhss");
+            final String date = sdf.format(new Date());
             StorageReference storageRef = storage.getReference();
-            StorageReference imgRef = storageRef.child("images/"+date+".jpg");
+            StorageReference imgRef = storageRef.child("images/"+date.toString()+".jpg");
             UploadTask uploadTask = imgRef.putBytes(imgBytes);
 
 
@@ -215,7 +217,7 @@ public class MainActivity extends AppCompatActivity
                     try
                     {
                         DatabaseReference log = mDatabase.getReference("camera").push();
-                        log.child("timestamp").setValue(date);
+                        log.child("timestamp").setValue(date.toString());
                         log.child("image").setValue(downloadURL.toString());
 
                     }

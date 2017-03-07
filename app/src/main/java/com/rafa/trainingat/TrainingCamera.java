@@ -22,8 +22,8 @@ import java.util.Collections;
 public class TrainingCamera
 {
     // Camera image parameters
-    private static final int IMG_WIDTH = 2592;
-    private static final int IMG_HEIGHT = 1944;
+    private static final int IMG_WIDTH = 1920;
+    private static final int IMG_HEIGHT = 1080;
     private static final int MAX_IMAGES = 10;
 
     private static final String TAG = "TrainingCamera";
